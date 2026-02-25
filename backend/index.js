@@ -4,14 +4,15 @@ import { connectDB } from "./db/connectDB.js";
 import authRoutes from "./routes/auth.route.js";
 
 dotenv.config();
-const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Hello I am Express server running on port");
-});
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(express.json()); // allow us to parse incoming requests with JSON payloads: req.body
 
 app.use("/api/auth", authRoutes);
-app.listen(3000, () => {
+
+app.listen(PORT, () => {
   connectDB();
-  console.log("Server is running on port 3000");
+  console.log("Server is running on port: ", PORT);
 });
