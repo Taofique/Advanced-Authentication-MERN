@@ -1,3 +1,16 @@
+/* Reset default margins & prevent scrollbars */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* prevents scrollbars */
+}
+
+/* Optional: set full height for body */
+body {
+  height: 100%;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
