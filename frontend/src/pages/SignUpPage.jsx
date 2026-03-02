@@ -3,14 +3,60 @@ import Input from "../components/Input";
 import { User, Mail, Lock } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 
 const SignUpPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Error states
+
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
   const handleSignUp = (e) => {
     e.preventDefault();
+  };
+
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setName(value);
+
+    if (value && value.length < 3) {
+      setNameError("Name must be at least 3 characters");
+    } else {
+      setNameError("");
+    }
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (value && !emailRegex.test(value)) {
+      setEmailError("Invalid email");
+    } else {
+      setEmailError("");
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+
+    const errors = [];
+
+    if (value.length < 6) errors.push("At least 6 characters");
+    if (!/[A-Z]/.test(value)) errors.push("Add uppercase letters");
+    if (!/[a-z]/.test(value)) errors.push("Add lowercase letters");
+    if (!/\d/.test(value)) errors.push("Add numbers");
+    if (!/[^A-Za-z0-9]/.test(value)) errors.push("Add special character");
+
+    setPasswordError(value && errors.join(", "));
   };
 
   return (
@@ -28,26 +74,33 @@ const SignUpPage = () => {
         <form onSubmit={handleSignUp}>
           <Input
             icon={User}
+            label="Full Name"
             type="text"
             placeholder="Full Name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={handleNameChange}
+            error={nameError}
           />
           <Input
             icon={Mail}
+            label="Email"
             type="email"
             placeholder="Email Address"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={handleEmailChange}
+            error={emailError}
           />
           <Input
             icon={Lock}
+            label="Password"
             type="password"
             placeholder="Password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
+            error={passwordError}
           />
           {/* Password strength meter */}
+          {password && <PasswordStrengthMeter password={password} />}
 
           <motion.button
             className="mt-5 w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200 "
