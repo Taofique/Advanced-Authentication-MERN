@@ -5,6 +5,8 @@ const API_URL = "http://localhost:5000/api/auth";
 
 axios.defaults.withCredentials = true;
 
+// Implemented the authStore.
+
 export const useAuthStore = create((set) => ({
   user: null,
   isAuthenticated: false,
