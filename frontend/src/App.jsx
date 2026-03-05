@@ -1,13 +1,56 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import FloatingShape from "./components/FloatingShape";
 import HomePage from "./pages/HomePage";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import { Toaster } from "react-hot-toast";
+import { useAuthStore } from "./store/authStore";
+import LoadingSpinner from "./components/LoadingSpinnerComponent";
+
+//Protected routes that require authentication
+
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!user.isVerified) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
+  return children;
+};
+
+// redirect authenticated users to the home page
+
+const RedirectAuthenticatedUser = ({ children }) => {
+  const { isAuthenticated, user, isCheckingAuth } = useAuthStore();
+
+  if (isCheckingAuth) return <LoadingSpinner></LoadingSpinner>;
+  if (isAuthenticated && user.isVerified) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
 
 function App() {
+  const { isCheckingAuth, checkAuth, isAuthenticated, user } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  if (isCheckingAuth) return <LoadingSpinner></LoadingSpinner>;
+
+  console.log("isAuthenticated", isAuthenticated);
+  console.log("user", user);
+
   return (
     <div className="w-screen h-screen bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 flex items-center justify-center overflow-hidden">
       <FloatingShape
@@ -33,9 +76,30 @@ function App() {
       />
 
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <RedirectAuthenticatedUser>
+              <SignUpPage />
+            </RedirectAuthenticatedUser>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <RedirectAuthenticatedUser>
+              <LoginPage />
+            </RedirectAuthenticatedUser>
+          }
+        />
         <Route path="/verify-email" element={<EmailVerificationPage />} />
       </Routes>
 
