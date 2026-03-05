@@ -1,12 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useAuthStore } from "../store/authStore";
+import toast from "react-hot-toast";
 
 const EmailVerificationPage = () => {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
+
+  const { error, isLoading, verifyEmail, clearError } = useAuthStore();
+  console.log(verifyEmail);
+  console.log(isLoading);
+
+  console.log(error);
 
   const handleChange = (index, value) => {
     if (/^[0-9]*$/.test(value)) {
@@ -36,22 +44,28 @@ const EmailVerificationPage = () => {
   };
 
   const handleKeyDown = (index, e) => {
+    clearError();
     if (e.key === "Backspace" && !code[index] && index > 0) {
       inputRefs.current[index - 1].focus();
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const verificationCode = code.join("");
-    alert(`Verification code submitted: ${verificationCode}`);
+    try {
+      await verifyEmail(verificationCode);
+      navigate("/");
+      toast.success("Email verified successfully");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   // Auto submit when all fields are filled (using UseEffect hook cause it runs after the component mounts / renders)
 
   useEffect(() => {
     if (code.every((digit) => digit !== "")) {
-      setIsLoading(true);
       handleSubmit(new Event("submit"));
     }
   }, [code]);
@@ -87,6 +101,8 @@ const EmailVerificationPage = () => {
             );
           })}
         </div>
+
+        {error && <p className="text-red-500 font-semibold mt-2">{error}</p>}
 
         <motion.button
           whileHover={{ scale: 1.05 }}
