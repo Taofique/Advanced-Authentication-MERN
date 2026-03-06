@@ -9,8 +9,11 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/authStore";
 import LoadingSpinner from "./components/LoadingSpinnerComponent";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
-//Protected routes that require authentication
+//Protected routes that require authentication ("if you're not logged in, you can't see this page")
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore();
@@ -26,13 +29,27 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// redirect authenticated users to the home page
+// redirect authenticated users to the home page ("if you're logged in, you don't need this pages")
 
 const RedirectAuthenticatedUser = ({ children }) => {
   const { isAuthenticated, user, isCheckingAuth } = useAuthStore();
 
   if (isCheckingAuth) return <LoadingSpinner></LoadingSpinner>;
   if (isAuthenticated && user.isVerified) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+const OnlyUnverifiedUser = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.isVerified) {
     return <Navigate to="/" replace />;
   }
 
@@ -100,9 +117,36 @@ function App() {
             </RedirectAuthenticatedUser>
           }
         />
-        <Route path="/verify-email" element={<EmailVerificationPage />} />
-      </Routes>
+        <Route
+          path="/verify-email"
+          element={
+            <OnlyUnverifiedUser>
+              <EmailVerificationPage />
+            </OnlyUnverifiedUser>
+          }
+        />
+        {/* using RedirectAuthenticatedUser component to guard the login, signup and forgot-pasword route cause it guards, if the user is logged in/ signed up/ forgot-password then why should the user go to login / signup / forgot-password route. He is already logged in. */}
 
+        <Route
+          path="/forgot-password"
+          element={
+            <RedirectAuthenticatedUser>
+              <ForgotPasswordPage />
+            </RedirectAuthenticatedUser>
+          }
+        />
+
+        <Route
+          path="/reset-password/:token"
+          element={
+            <RedirectAuthenticatedUser>
+              <ResetPasswordPage />
+            </RedirectAuthenticatedUser>
+          }
+        />
+
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
       <Toaster />
     </div>
   );
